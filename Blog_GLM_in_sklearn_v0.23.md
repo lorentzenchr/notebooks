@@ -65,50 +65,66 @@ The simplest distribution for those is the [Poisson distribbution](https://en.wi
 ## 2 Introduction to GLMs
 
 GLMs are statistical models for regression tasks that aim to estimate and predict the conditional expectation of $Y$, $E[Y|X]$.
-They unify many different target types $Y$ under one framework: [Ordinary Least Squares](https://en.wikipedia.org/wiki/Ordinary_least_squares), [Logistic](https://en.wikipedia.org/wiki/Logistic_regression), [Probit](https://en.wikipedia.org/wiki/Probit_model) and [multinomial model](https://en.wikipedia.org/wiki/Multinomial_logistic_regression), [Poisson regression](https://en.wikipedia.org/wiki/Poisson_regression), Gamma and many more. GLMs were invented by John Nelder and Robert Wedderburn in 1972, long after artificial neural networks😉
+They unify many different target types under one framework: [Ordinary Least Squares](https://en.wikipedia.org/wiki/Ordinary_least_squares), [Logistic](https://en.wikipedia.org/wiki/Logistic_regression), [Probit](https://en.wikipedia.org/wiki/Probit_model) and [multinomial model](https://en.wikipedia.org/wiki/Multinomial_logistic_regression), [Poisson regression](https://en.wikipedia.org/wiki/Poisson_regression), Gamma and many more. GLMs were invented by John Nelder and Robert Wedderburn in 1972, long after artificial neural networks😉
 
 The basic assumptions for instance or data row $i$ are
 $$
-E[Y_i|x_i] = \mu_i= h(x_i^T\beta)
+E[Y_i|x_i] = \mu_i= h(x_i^T\beta)\,,
 \\
-Var[Y_i|x_i]] \sim \frac{v(\mu_i)}{w_i}
+Var[Y_i|x_i]] \sim \frac{v(\mu_i)}{w_i}\,.
 $$
-*cl: The following is maybe too much*
+*cl: The following is maybe too much*<br>
 Therefore, one needs to specify:
 - a target $Y_i$,
 - an inverse link function $h$, which maps the real numbers to the range of $Y$,
 - optionally, sample weights $w_i$,
-- feature vectors $x_i$ forming the rows of the feature matrix $X$,
 - and a variance function $v(\mu)$, which is equivalent to specifying a loss function or a specific distribution from the family of the [exponential dispersion model](https://en.wikipedia.org/wiki/Exponential_dispersion_model) (EDM).
+- a feature matrix $X$ with row vectors $x_i$,
 
-Although we are analysing here the marginal distribution of $Y$ and not the conditional (on the features $X$), 
+Note that the choice of the loss or distribution function or, equivalently, a variance function is crucial. It should, at least, reflect the domain of $Y$. Some typical tuples of domain, loss and link function are:
+- real numbers, Normal distribution, identity link
+- positive numbers: Gamma distribution, log link
+- non-negative: Poisson distribution (works for integers as well as continuous targets), log link
+- interval $[0, 1]$: Binomial distribution, logit link
 
-**Implementation**
-- [ ] Mention something about implementation?
-- Minimal implementation, losses, links, only lbfgs, only L2.
+Once you have chosen the first four points, it remains to find a good feature matrix $X$. As opposed to other machine learning algorithms like boosted trees, and apart from possible penalty strengths, there are no hyperparemeters to tune, but the big leverage to improve your model is manual feature engineering of $X$.
 
 **Strengths**
-Compare
-- Very well understood and established, proven over and over in practice (e.g. stability).
+- Very well understood and established, proven over and over in practice, e.g. stability, see next point.
+- Very stable: slight changes of training data do not alter the fitted model much (counter example: decision trees).
 - Versatile as to model different targets with different link and loss functions.
+- Mathematical tractable => good theoretical understanding and fast fitting even for big data.
 - Ease of interpretation.
 - As flexible as the building of the feature matrix $X$.
-- Mathematical tractable => fast fitting even for big data
-- Certain losses can handle a certain amount of excess of zeros.
+- Some losses like Poisson can handle a certain amount of excess of zeros.
 
 **Weaknesses**
-- Feature matrix $X$ has to be build manually, in particular interactions an non-linear effects.
+- Feature matrix $X$ has to be build manually, in particular interactions and non-linear effects.
 - Unbiasedness depends on (correct) specification of $X$ and of combination of link and loss function.
 - Predictive performance often less than boosted tree models or neural networks.
 
+**Current Minimal Implementation**
+- [ ] Mention something about implementation?
+- Tweedie deviance losses comprising Normal, Poisson and Gamma.
+- L2 penalty.
+- LBFGS as only solver.
 
-## 3 A Poisson example
 
-- [ ] According to https://scikit-learn.org/stable/auto_examples/linear_model/plot_poisson_regression_non_normal_loss.html ?
+## 3 Gamma GLM for Diamonds
+
+Although, in the first section, we were analysing the marginal distribution of $Y$ and not the conditional (on the features $X$), we fit a Gamma GLM with log-link, i.e. $h(x) = \exp(x)$. We split the data, 80% into training and 20% into test set and use the ColumnTransformer to handle columns differently. Our feature engineering consists of choosing the four columns `"carat"`, `"color"` and `"clarity"`, log-transforming `"carat"` and one-hot-encoding of the other three.
+
+TODO: Show some plots.
+
+Note: Fitting OLS on log(prices) works also quite well. This is to be expected, as Log-Normal and Gamma are very similar distributions, both with $v(\mu) \sim \mu^2$.
 
 ## 4 Outlook
 
 - [ ] Mention some PR explicitly?
+- L1 penalty?
+- More solvers, at least coordinate descent?
+- SplineTransformers?
+- Better handling of categorical data?
 
 
 
