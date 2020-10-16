@@ -112,9 +112,9 @@ Once you have chosen the first four points, it remains to find a good feature ma
 
 ## 3 Gamma GLM for Diamonds
 
-Although, in the first section, we were analysing the marginal distribution of $Y$ and not the conditional (on the features $X$), we fit a Gamma GLM with log-link, i.e. $h(x) = \exp(x)$. We split the data, 80% into training and 20% into test set and use the ColumnTransformer to handle columns differently. Our feature engineering consists of choosing the four columns `"carat"`, `"color"` and `"clarity"`, log-transforming `"carat"` and one-hot-encoding of the other three.
+Although, in the first section, we were analysing the marginal distribution of $Y$ and not the conditional (on the features $X$) distribution, we take away the suggestion to fit a Gamma GLM with log-link, i.e. $h(x) = \exp(x)$. Furthermore, we split the data textbook-like into 80% training set and 20% test set and use the ColumnTransformer to handle columns differently. Our feature engineering consists of selecting only the four columns `"carat"`, `"clarity"`, `"color"` and `"cut"`, log-transforming `"carat"` as well as one-hot-encoding the other three.
 
-TODO: Show some plots.
+TODO: Show some plots and figures.
 
 Note: Fitting OLS on log(prices) works also quite well. This is to be expected, as Log-Normal and Gamma are very similar distributions, both with $v(\mu) \sim \mu^2$.
 
