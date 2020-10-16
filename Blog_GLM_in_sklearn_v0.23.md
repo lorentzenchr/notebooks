@@ -89,7 +89,7 @@ Note that the choice of the loss or distribution function or, equivalently, a va
 
 Once you have chosen the first four points, it remains to find a good feature matrix $X$. As opposed to other machine learning algorithms like boosted trees, and apart from possible penalty strengths, there are no hyperparemeters to tune, but the big leverage to improve your model is manual feature engineering of $X$.
 
-**Strengths**
+#### Strengths
 - Very well understood and established, proven over and over in practice, e.g. stability, see next point.
 - Very stable: slight changes of training data do not alter the fitted model much (counter example: decision trees).
 - Versatile as to model different targets with different link and loss functions.
@@ -98,17 +98,21 @@ Once you have chosen the first four points, it remains to find a good feature ma
 - As flexible as the building of the feature matrix $X$.
 - Some losses like Poisson can handle a certain amount of excess of zeros.
 
-**Weaknesses**
+#### Weaknesses
 - Feature matrix $X$ has to be build manually, in particular interactions and non-linear effects.
 - Unbiasedness depends on (correct) specification of $X$ and of combination of link and loss function.
 - Predictive performance often less than boosted tree models or neural networks.
 
-**Current Minimal Implementation**
-- [ ] Mention something about implementation?
-- Tweedie deviance losses comprising Normal, Poisson and Gamma.
-- L2 penalty.
-- LBFGS as only solver.
-
+#### Current Minimal Implementation in Scikit-Learn
+The new GLM regressors are available as
+```python
+from sklearn.linear_model import PoissonRegressor
+from sklearn.linear_model import GammaRegressor
+from sklearn.linear_model import TweedieRegressor
+```
+The `TweedieRegressor` has a parameter `power`, which corresponds to the exponent of the variance function $v(\mu) \sim \mu^p$. For ease of the most common use, `PoissonRegressor` and `GammaRegressor` are the same as `TweedieRegressor(power=1)` and `TweedieRegressor(power=2)`, respectively.
+All of them also support an L2-penalty on the coefficients by setting the penalization strength `alpha`.
+The underlying optimization problem is solve via the [lbfgs solver of scipy](https://docs.scipy.org/doc/scipy/reference/optimize.minimize-lbfgsb.html#optimize-minimize-lbfgsb).
 
 ## 3 Gamma GLM for Diamonds
 
@@ -123,9 +127,8 @@ Note: Fitting OLS on log(prices) works also quite well. This is to be expected, 
 - [ ] Mention some PR explicitly?
 - L1 penalty?
 - More solvers, at least coordinate descent?
-- SplineTransformers?
-- Better handling of categorical data?
-
+- SplineTransformer?
+- Better handling of categorical data, e.g. interaction terms?
 
 
 By Christian Lorentzen and Roman Yurchak
