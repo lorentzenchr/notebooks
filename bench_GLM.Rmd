@@ -1,0 +1,233 @@
+---
+title: "Simple Benchmark of GLM"
+output: html_document
+---
+
+Here, we want to compare different GLM implementations in R and Python on the same dataset, namely the french MTPL dataset  https://www.openml.org/d/41214.
+This dataset is also available on http://cas.uqam.ca/ as R package CASdatasets, but the data may change from version to version.
+
+```{r message = FALSE}
+library(bench)
+library(ggplot2)
+library(glmnet)
+library(knitr)
+library(MetricsWeighted)
+library(OpenML)
+library(tidyverse)
+```
+
+## Load and prepare data
+We load and prepare the data.
+As we are not interested in model comparison, we can use the whole data for mode training.
+We also create the design matrix `X` for glmnet, which does not understand a formula.
+In addition, this makes working with Python implemetations particular simpler.
+```{r message = FALSE, warning=FALSE}
+df <- getOMLDataSet(data.id = 41214L)
+df <- tibble(df$data)
+
+df_train <- df %>% 
+  mutate(Freq = ClaimNb / Exposure,
+         Area = factor(Area),
+         Region = factor(Region),
+         VehBrand = factor(VehBrand),
+         VehGas = factor(VehGas),
+         logDensity = log(Density)
+         )
+
+y <- df_train$Freq
+w <- df_train$Exposure
+X <- model.matrix(Freq ~ DrivAge + VehAge + VehPower
+                  + logDensity
+                  + Region + VehBrand + VehGas,
+                  data = df_train)
+```
+We have a design matrix with `r nrow(X)` rows and `r ncol(X)` columns.
+
+
+## R GLM Implementations
+
+It is hard to compare glm and glmnet as they measure the 
+precision differently:
+
+- glm uses epsilon: The iterations converge when |dev - dev_{old}|/(|dev| + 0.1) < epsilon.
+- glmnet uses thresh: Each inner coordinate-descent loop continues until the maximum change in the objective after any coefficient update is less than thresh times the null deviance.
+
+We use the default value `epsilon = 1e-8` and set `thres = 1e-7`, i.e. the largest value for which the objective is smaller or equal the glm one.
+```{r}
+glm_control <- glm.control(epsilon = 1e-8)  # the default
+
+run_glm <- function(){
+  glm(Freq ~ DrivAge + VehAge + VehPower
+      + logDensity
+      + Region + VehBrand + VehGas,
+      data = df_train,
+      weights = w,
+      family = quasipoisson(),
+      control = glm_control
+      )
+}
+
+run_glm_matrix <- function(){
+  glm.fit(X, y, weights = w,
+          family = quasipoisson(),
+          control = glm_control
+          ) 
+}
+
+run_glmnet <- function(){
+  glmnet(X, y, weights = w,
+         family = "poisson",
+         lambda = 0,
+         standardize = FALSE,
+         thresh = 1e-7)
+}
+```
+
+
+## Python GLM Implementations
+
+We will use the `reticulate` package to run Python code from within R.
+Note that we are using the current master (v1.17 unreleased) by installing via `remotes::install_github("rstudio/reticulate")`,
+see https://github.com/rstudio/reticulate/issues/831 for the reason why.
+```{r}
+library(reticulate)
+use_virtualenv("~/github/python3_general", required = TRUE)
+```
+We could simply import the same dataset for Python with `fetch_openml(data_id=41214, as_frame=True).frame` from `sklearn.datasets.fetch_openml`.
+But with `reticulate`, it is even simpler to access R objects directly, e.g. `r.df_train`, `r.X`, etc.
+This way, we even have the same preprocessed data for sure, i.e. the design matrix.
+```{python}
+import numpy as np
+import pandas as pd
+from sklearn.base import clone
+from sklearn.linear_model import PoissonRegressor
+import statsmodels.api as sm
+
+
+# Just to make sure that conversion between R and Python does not influence benchmarks.
+X = r.X
+y = r.y
+w = r.w
+
+# Note:
+# 1) X already contains intercept, but scikit-learn estimator better works
+#    with setting fit_intercept=True, as it initializes with better values.
+# 2) We could reuse sklearn_glm several times and therefore set
+#    warm_start=False in order to have a fair comparison. Instead, we use
+#    clone(sklearn_glm) inside run_sklearn
+sklearn_glm = PoissonRegressor(alpha=0, fit_intercept=True, max_iter=1000,
+                               tol=1e-5, warm_start=False)
+sm_glm = sm.GLM(y, X, var_weights=w, family=sm.families.Poisson())
+```
+But we benchmark in R:
+```{r}
+run_sklearn <- function(){
+  py_run_string("clone(sklearn_glm).fit(X[:, 1:], y, sample_weight=w)")
+}
+run_statsmodels <- function(){
+  py_run_string("sm_glm.fit(tol=1e-8)")
+}
+```
+
+## Check Average Poisson Deviance
+We compare the resulting in-sample objective, namely the average poisson deviance in order to be sure, we compared apples with apples, i.e. have fitted with the same target precision.
+```{r}
+res_glm <- run_glm()
+res_glmnet <- run_glmnet()
+py_run_string("res_sklearn = clone(sklearn_glm).fit(X[:, 1:], y, sample_weight=w)")
+py_run_string("res_sm = sm_glm.fit(tol=1e-8)")
+
+# Compare training loss
+objective_table <- tibble(
+  estimator = c("glm", "glmnet", "scikit-learn", "statsmodels"),
+  poisson_deviance = c(
+    deviance_poisson(y, predict(res_glm, df_train, type = "response")),
+    deviance_poisson(y, predict(res_glmnet, X, type = "response")),
+    deviance_poisson(y, py$res_sklearn$predict(X[, -1])),
+    deviance_poisson(y, py$res_sm$predict(X))
+  )
+)
+
+# options(pillar.sigfig = 6)
+# print(objective_table)
+kable(objective_table, caption = "Poisson Deviance", digits = 6)
+```
+
+
+## Run Benchmak&mdash;Finally
+And here comes the benchmark:
+
+```{r results='asis', eval=TRUE}
+lb <- bench::mark(
+  run_glm(),
+  run_glm_matrix(),
+  run_glmnet(),
+  run_sklearn(),
+  run_statsmodels(),
+  check = FALSE,
+  memory = FALSE,
+  min_iterations = 3
+)
+
+# summary(lb)
+kable(lb, caption = "Benchmark Results")
+autoplot(lb)
+```
+
+
+## Appendix
+### Scikit-Learn Self Contained
+If you want to create the same design matrix with scikit-learn as we did with R, you could use the following junk of code:
+```{python eval=FALSE}
+import numpy as np
+import pandas as pd
+from sklearn.datasets import fetch_openml
+from sklearn.pipeline import make_pipeline, Pipeline
+from sklearn.preprocessing import FunctionTransformer, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.linear_model import PoissonRegressor
+from sklearn.metrics import mean_poisson_deviance
+
+
+df = fetch_openml(data_id=41214, as_frame=True).frame
+df["Freq"] = df["ClaimNb"] / df["Exposure"]
+
+log_scale_transformer = make_pipeline(
+    FunctionTransformer(np.log, validate=False)
+)
+
+linear_model_preprocessor = ColumnTransformer(
+    [
+        ("passthrough_numeric", "passthrough",
+            ["DrivAge", "VehAge", "VehPower"]),
+        ("logDensity", log_scale_transformer,
+            ["Density"]),
+        ("onehot_categorical", OneHotEncoder(drop='first', sparse=True),
+            ["Region", "VehBrand", "VehGas"]),
+    ],
+    remainder="drop",
+)
+
+poisson_glm = Pipeline([
+    ("preprocessor", linear_model_preprocessor),
+    ("regressor", PoissonRegressor(alpha=0, max_iter=1000, tol=1e-5))
+])
+
+poisson_glm.fit(df, df["Freq"],
+                regressor__sample_weight=df["Exposure"])
+
+# create design matrix, but without intercept
+poisson_glm[-2].transform(df)
+```
+
+### Statsmodels Design Matrix
+Statsmodels uses patsy in order to process formulae just like R.
+```{python eval=FALSE}
+import statsmodels.formula.api as smf
+
+sm_glm = smf.glm("Freq ~ DrivAge + VehAge + VehPower"
+                 " + logDensity"
+                 " + Region + VehBrand + VehGas",
+                 var_weights=w, family=sm.families.Poisson())
+```
+
