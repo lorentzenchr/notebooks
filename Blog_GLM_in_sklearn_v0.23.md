@@ -34,7 +34,7 @@ It is known to be sensitive to outliers.
 ### TLDR
 
 While scikit-learn already had some Generalized Linear Models (GLM) implemented, e.g. [LogisticRegression](https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression), other losses than mean squared error and log-loss were missing.
-As the world is almost (surely) never Normal distributed, regression tasks might profit a lot from the new [PoissonRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.PoissonRegressor.html#sklearn.linear_model.PoissonRegressor), [GammaRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.GammaRegressor.html#sklearn.linear_model.GammaRegressor) and [TweedieRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.TweedieRegressor.html#sklearn.linear_model.TweedieRegressor) estimators, added in scikit-learn 0.23. Read more below and in the [User Guide](https://scikit-learn.org/stable/modules/linear_model.html#generalized-linear-regression).🚀 
+As the world is almost (surely) never Normal distributed, regression tasks might benefit a lot from the new [PoissonRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.PoissonRegressor.html#sklearn.linear_model.PoissonRegressor), [GammaRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.GammaRegressor.html#sklearn.linear_model.GammaRegressor) and [TweedieRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.TweedieRegressor.html#sklearn.linear_model.TweedieRegressor) estimators, added in scikit-learn 0.23. Read more below and in the [User Guide](https://scikit-learn.org/stable/modules/linear_model.html#generalized-linear-regression).🚀 
 
 **Table of Content**
 [ToC]
@@ -45,21 +45,21 @@ As the world is almost (surely) never Normal distributed, regression tasks might
 Like *real life*, real world data is most often far from *normality*.
 In what follows, we have chosen the [diamonds dataset](https://ggplot2.tidyverse.org/reference/diamonds.html) to show the non-normality and the convenience of GLMs in modelling such targets.
 
-The diamonds dataset consists of prices of over 50.000 round cut diamonds with a few explaining variables, also called features $X$, such as carat, color, cut quality, clarity and so forth.
+The diamonds dataset consists of prices of over 50 000 round cut diamonds with a few explaining variables, also called features $X$, such as carat, color, cut quality, clarity and so forth.
 We start with a plot of the cumulative distribution function (CDF) of the target variable $Y=\textrm{price}$ and compare to a fitted [Normal](https://en.wikipedia.org/wiki/Normal_distribution) and [Gamma distribution](https://en.wikipedia.org/wiki/Gamma_distribution) (two parameters each).
 
 TODO: Insert first plot of https://github.com/lorentzenchr/notebooks/blob/master/Blog_GLM_in_sklearn_v0.23.ipynb
 
 These plots show clearly that the Gamma distribution might be a better fit to the marginal distribution of $Y$ than the Normal distribution.
 
-Other instances of data, that is not Normal distributed, are counts (discrete) or frequencies (counts per some unit). A few examples that come up to mind are:
+Other instances of data, that is not Normal distributed, are counts (discrete) or frequencies (counts per some unit). A few examples that come to mind are:
 - number of clicks per second in a Geiger counter
 - number of patients per day in a hospital
 - number of persons per day using their bike
 - number of goals scored per game and player
 - number of smiles per day and person😃 *cl: Would LOVE to hove those data!!!*
 
-The simplest distribution for those is the [Poisson distribbution](https://en.wikipedia.org/wiki/Poisson_distribution).
+The simplest distribution for those is the [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution).
 
 
 ## 2 Introduction to GLMs
@@ -74,34 +74,34 @@ E[Y_i|x_i] = \mu_i= h(x_i^T\beta)\,,
 Var[Y_i|x_i]] \sim \frac{v(\mu_i)}{w_i}\,.
 $$
 *cl: The following is maybe too much*<br>
-Therefore, one needs to specify:
+Where, one needs to specify:
 - a target $Y_i$,
-- an inverse link function $h$, which maps the real numbers to the range of $Y$,
+- an inverse link function $h$, which maps real numbers to the range of $Y$,
 - optionally, sample weights $w_i$,
 - and a variance function $v(\mu)$, which is equivalent to specifying a loss function or a specific distribution from the family of the [exponential dispersion model](https://en.wikipedia.org/wiki/Exponential_dispersion_model) (EDM).
 - a feature matrix $X$ with row vectors $x_i$,
 
-Note that the choice of the loss or distribution function or, equivalently, a variance function is crucial. It should, at least, reflect the domain of $Y$. Some typical tuples of domain, loss and link function are:
+Note that the choice of the loss or distribution function or, equivalently, a variance function is crucial. It should, at least, reflect the domain of $Y$. Some typical combinations of domain, loss and link function are:
 - real numbers, Normal distribution, identity link
 - positive numbers: Gamma distribution, log link
 - non-negative: Poisson distribution (works for integers as well as continuous targets), log link
 - interval $[0, 1]$: Binomial distribution, logit link
 
-Once you have chosen the first four points, it remains to find a good feature matrix $X$. As opposed to other machine learning algorithms like boosted trees, and apart from possible penalty strengths, there are no hyperparemeters to tune, but the big leverage to improve your model is manual feature engineering of $X$.
+Once you have chosen the first four points, what remains is to find a good feature matrix $X$. Similarly to classical linear models, and unlike other machine learning algorithms such as boosted trees, there are very few hyperparemeters to tune. A typical hyperparemeter is regularization strength. Therefore the big leverage to improve your model is manual feature engineering of $X$.
 
 #### Strengths
 - Very well understood and established, proven over and over in practice, e.g. stability, see next point.
 - Very stable: slight changes of training data do not alter the fitted model much (counter example: decision trees).
 - Versatile as to model different targets with different link and loss functions.
-- Mathematical tractable => good theoretical understanding and fast fitting even for big data.
+- Mathematical tractable => good theoretical understanding and fast fitting even for large datasets.
 - Ease of interpretation.
 - As flexible as the building of the feature matrix $X$.
-- Some losses like Poisson can handle a certain amount of excess of zeros.
+- Some losses, like Poisson loss, can handle a certain amount of excess of zeros.
 
 #### Weaknesses
-- Feature matrix $X$ has to be build manually, in particular interactions and non-linear effects.
+- Feature matrix $X$ has to be build manually, in particular for interactions and non-linear effects.
 - Unbiasedness depends on (correct) specification of $X$ and of combination of link and loss function.
-- Predictive performance often less than boosted tree models or neural networks.
+- Predictive performance often worse than for boosted tree models or neural networks.
 
 #### Current Minimal Implementation in Scikit-Learn
 The new GLM regressors are available as
@@ -112,7 +112,7 @@ from sklearn.linear_model import TweedieRegressor
 ```
 The `TweedieRegressor` has a parameter `power`, which corresponds to the exponent of the variance function $v(\mu) \sim \mu^p$. For ease of the most common use, `PoissonRegressor` and `GammaRegressor` are the same as `TweedieRegressor(power=1)` and `TweedieRegressor(power=2)`, respectively.
 All of them also support an L2-penalty on the coefficients by setting the penalization strength `alpha`.
-The underlying optimization problem is solve via the [lbfgs solver of scipy](https://docs.scipy.org/doc/scipy/reference/optimize.minimize-lbfgsb.html#optimize-minimize-lbfgsb).
+The underlying optimization problem is solved via the [lbfgs solver of scipy](https://docs.scipy.org/doc/scipy/reference/optimize.minimize-lbfgsb.html#optimize-minimize-lbfgsb).
 
 ## 3 Gamma GLM for Diamonds
 
