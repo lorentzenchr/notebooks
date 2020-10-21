@@ -3,6 +3,8 @@ title: "Simple Benchmark of GLM"
 output: html_document
 ---
 
+[Link to Rendered html view](https://htmlpreview.github.io/?https://github.com/lorentzenchr/notebooks/blob/master/bench_GLM.html).
+
 Here, we want to compare different GLM implementations in R and Python on the same dataset, namely the french MTPL dataset  https://www.openml.org/d/41214.
 This dataset is also available on http://cas.uqam.ca/ as R package CASdatasets, but the data may change from version to version.
 
