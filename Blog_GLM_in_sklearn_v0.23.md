@@ -112,7 +112,9 @@ from sklearn.linear_model import TweedieRegressor
 ```
 The `TweedieRegressor` has a parameter `power`, which corresponds to the exponent of the variance function $v(\mu) \sim \mu^p$. For ease of the most common use, `PoissonRegressor` and `GammaRegressor` are the same as `TweedieRegressor(power=1)` and `TweedieRegressor(power=2)`, respectively.
 All of them also support an L2-penalty on the coefficients by setting the penalization strength `alpha`.
-The underlying optimization problem is solved via the [lbfgs solver of scipy](https://docs.scipy.org/doc/scipy/reference/optimize.minimize-lbfgsb.html#optimize-minimize-lbfgsb).
+The underlying optimization problem is solved via the [l-bfgs solver of scipy](https://docs.scipy.org/doc/scipy/reference/optimize.minimize-lbfgsb.html#optimize-minimize-lbfgsb).
+
+Please note that the release 0.23 also introduced the Poisson loss for the histogram gradient boosting regressor as `HistGradientBoostingRegressor(loss='poisson')`.
 
 ## 3 Gamma GLM for Diamonds
 
@@ -124,11 +126,15 @@ Note: Fitting OLS on log(prices) works also quite well. This is to be expected, 
 
 ## 4 Outlook
 
-- [ ] Mention some PR explicitly?
-- L1 penalty?
-- More solvers, at least coordinate descent?
-- SplineTransformer?
-- Better handling of categorical data, e.g. interaction terms?
+There are several open issues and pull request for improving GLMs and fitting of non-normal data. Let's hope that we'll see some of them in the near future:
+
+- Poisson splitting criterion for decision trees [PR #17386](https://github.com/scikit-learn/scikit-learn/pull/17386) in v0.24
+- Spline Transformer [PR #18368](https://github.com/scikit-learn/scikit-learn/pull/18368) 
+- L1 penalty and coordinate descent solver [Issue #16637](https://github.com/scikit-learn/scikit-learn/issues/16637)
+- [IRLS](https://en.wikipedia.org/wiki/Iteratively_reweighted_least_squares) solver if bencharking shows improvement over l-bfgs [Issue #16634](https://github.com/scikit-learn/scikit-learn/issues/16634)
+- Better handling of categorical data
+  - Better support for interaction terms [Issue 15263](https://github.com/scikit-learn/scikit-learn/issues/15263)
+- Feature names [SLEP015](https://github.com/scikit-learn/enhancement_proposals/pull/48)🎉
 
 
-By Christian Lorentzen and Roman Yurchak
+By Christian Lorentzen
