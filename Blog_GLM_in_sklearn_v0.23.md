@@ -42,7 +42,15 @@ As the world is almost (surely) never Normal distributed, regression tasks might
 
 ## 1 The world is not Normal distributed
 
-Like *real life*, real world data is most often far from *normality*.
+Like *real life*, real world data are most often far from *normality*. Their distribution tend to a [normal or Gaussian distribution](https://en.wikipedia.org/wiki/Normal_distribution) 
+
+Other instances of data, that is not Normal distributed, are counts (discrete) or frequencies (counts per some unit). A few examples that come to mind are:
+- number of clicks per second in a Geiger counter
+- number of patients per day in a hospital
+- number of persons per day using their bike
+- number of goals scored per game and player
+- number of smiles per day and person😃 *cl: Would LOVE to hove those data!!!*
+
 In what follows, we have chosen the [diamonds dataset](https://ggplot2.tidyverse.org/reference/diamonds.html) to show the non-normality and the convenience of GLMs in modelling such targets.
 
 The diamonds dataset consists of prices of over 50 000 round cut diamonds with a few explaining variables, also called features $X$, such as carat, color, cut quality, clarity and so forth.
@@ -51,13 +59,6 @@ We start with a plot of the cumulative distribution function (CDF) of the target
 TODO: Insert first plot of https://github.com/lorentzenchr/notebooks/blob/master/Blog_GLM_in_sklearn_v0.23.ipynb
 
 These plots show clearly that the Gamma distribution might be a better fit to the marginal distribution of $Y$ than the Normal distribution.
-
-Other instances of data, that is not Normal distributed, are counts (discrete) or frequencies (counts per some unit). A few examples that come to mind are:
-- number of clicks per second in a Geiger counter
-- number of patients per day in a hospital
-- number of persons per day using their bike
-- number of goals scored per game and player
-- number of smiles per day and person😃 *cl: Would LOVE to hove those data!!!*
 
 The simplest distribution for those is the [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution).
 
