@@ -81,11 +81,11 @@ Var[Y_i|x_i]] \sim \frac{v(\mu_i)}{w_i}\,.
 $$
 *cl: The following is maybe too much*<br>
 Where, one needs to specify:
-- a target $Y_i$,
-- an inverse link function $h$, which maps real numbers to the range of $Y$,
+- the target variable $Y_i$,
+- the inverse link function $h$, which maps real numbers to the range of $Y$,
 - optionally, sample weights $w_i$,
-- and a variance function $v(\mu)$, which is equivalent to specifying a loss function or a specific distribution from the family of the [exponential dispersion model](https://en.wikipedia.org/wiki/Exponential_dispersion_model) (EDM).
-- a feature matrix $X$ with row vectors $x_i$,
+- and the variance function $v(\mu)$, which is equivalent to specifying a loss function or a specific distribution from the family of the [exponential dispersion model](https://en.wikipedia.org/wiki/Exponential_dispersion_model) (EDM).
+- the feature matrix $X$ with row vectors $x_i$,
 
 Note that the choice of the loss or distribution function or, equivalently, a variance function is crucial. It should, at least, reflect the domain of $Y$.
 Some typical combinations of domain, loss and link function are (_are those choices related with some specific dataset? Examples?_):
@@ -94,8 +94,8 @@ Some typical combinations of domain, loss and link function are (_are those choi
 - non-negative: Poisson distribution (works for integers as well as continuous targets), log link
 - interval $[0, 1]$: Binomial distribution, logit link
 
-Once you have chosen the first four points, what remains is to find a good feature matrix $X$. Similarly to classical linear models, and unlike other machine
-learning algorithms such as boosted trees, there are very few hyperparemeters to tune. A typical hyperparemeter is regularization strength.
+Once you have chosen the first four points, what remains is to find a good feature matrix $X$.
+Similarly to classical linear models there are very few hyperparemeters to tune. A typical hyperparemeter is regularization strength.
 Therefore the big leverage to improve your model is manual feature engineering of $X$ (_encoding? selecting features?_).
 
 #### Strengths
