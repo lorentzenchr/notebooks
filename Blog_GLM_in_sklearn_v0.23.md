@@ -42,14 +42,15 @@ As the world is almost (surely) never Normal distributed, regression tasks might
 
 ## 1 The world is not Normal distributed
 
-Like *real life*, real world data are most often far from *normality*. Their distribution tend to a [normal or Gaussian distribution](https://en.wikipedia.org/wiki/Normal_distribution) 
+Like *real life*, real world data are most often far from *normality*. As in real life, normality is sometime just an expectation and data distributions
+only tend to a [normal (or Gaussian) distribution](https://en.wikipedia.org/wiki/Normal_distribution) as the number of samples increases.
 
-Other instances of data, that is not Normal distributed, are counts (discrete) or frequencies (counts per some unit). A few examples that come to mind are:
+Typical instances of data, that are not Normal distributed, are counts (discrete) or frequencies (counts per some unit). A few examples that come to mind are:
 - number of clicks per second in a Geiger counter
 - number of patients per day in a hospital
 - number of persons per day using their bike
 - number of goals scored per game and player
-- number of smiles per day and person😃 *cl: Would LOVE to hove those data!!!*
+- number of smiles per day and person😃 *cl: Would LOVE to hove those data!!!* *Think about make their distribution more normal*
 
 In what follows, we have chosen the [diamonds dataset](https://ggplot2.tidyverse.org/reference/diamonds.html) to show the non-normality and the convenience of GLMs in modelling such targets.
 
@@ -66,7 +67,11 @@ The simplest distribution for those is the [Poisson distribution](https://en.wik
 ## 2 Introduction to GLMs
 
 GLMs are statistical models for regression tasks that aim to estimate and predict the conditional expectation of $Y$, $E[Y|X]$.
-They unify many different target types under one framework: [Ordinary Least Squares](https://en.wikipedia.org/wiki/Ordinary_least_squares), [Logistic](https://en.wikipedia.org/wiki/Logistic_regression), [Probit](https://en.wikipedia.org/wiki/Probit_model) and [multinomial model](https://en.wikipedia.org/wiki/Multinomial_logistic_regression), [Poisson regression](https://en.wikipedia.org/wiki/Poisson_regression), Gamma and many more. GLMs were invented by John Nelder and Robert Wedderburn in 1972, long after artificial neural networks😉
+They unify many different target types under one framework: [Ordinary Least Squares](https://en.wikipedia.org/wiki/Ordinary_least_squares),
+[Logistic](https://en.wikipedia.org/wiki/Logistic_regression), [Probit](https://en.wikipedia.org/wiki/Probit_model) and
+[multinomial model](https://en.wikipedia.org/wiki/Multinomial_logistic_regression), [Poisson regression](https://en.wikipedia.org/wiki/Poisson_regression),
+Gamma and many more. GLMs were invented by [John Nelder](https://en.wikipedia.org/wiki/John_Nelder) and
+[Robert Wedderburn](https://en.wikipedia.org/wiki/Robert_Wedderburn_(statistician)) in 1972 ... long after artificial neural networks!
 
 The basic assumptions for instance or data row $i$ are
 $$
@@ -82,13 +87,16 @@ Where, one needs to specify:
 - and a variance function $v(\mu)$, which is equivalent to specifying a loss function or a specific distribution from the family of the [exponential dispersion model](https://en.wikipedia.org/wiki/Exponential_dispersion_model) (EDM).
 - a feature matrix $X$ with row vectors $x_i$,
 
-Note that the choice of the loss or distribution function or, equivalently, a variance function is crucial. It should, at least, reflect the domain of $Y$. Some typical combinations of domain, loss and link function are:
+Note that the choice of the loss or distribution function or, equivalently, a variance function is crucial. It should, at least, reflect the domain of $Y$.
+Some typical combinations of domain, loss and link function are (_are those choices related with some specific dataset? Examples?_):
 - real numbers, Normal distribution, identity link
 - positive numbers: Gamma distribution, log link
 - non-negative: Poisson distribution (works for integers as well as continuous targets), log link
 - interval $[0, 1]$: Binomial distribution, logit link
 
-Once you have chosen the first four points, what remains is to find a good feature matrix $X$. Similarly to classical linear models, and unlike other machine learning algorithms such as boosted trees, there are very few hyperparemeters to tune. A typical hyperparemeter is regularization strength. Therefore the big leverage to improve your model is manual feature engineering of $X$.
+Once you have chosen the first four points, what remains is to find a good feature matrix $X$. Similarly to classical linear models, and unlike other machine
+learning algorithms such as boosted trees, there are very few hyperparemeters to tune. A typical hyperparemeter is regularization strength.
+Therefore the big leverage to improve your model is manual feature engineering of $X$ (_encoding? selecting features?_).
 
 #### Strengths
 - Very well understood and established, proven over and over in practice, e.g. stability, see next point.
