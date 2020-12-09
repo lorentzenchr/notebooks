@@ -55,7 +55,7 @@ Typical instances of data, that are not Normal distributed, are counts (discrete
 In what follows, we have chosen the [diamonds dataset](https://ggplot2.tidyverse.org/reference/diamonds.html) to show the non-normality and the convenience of GLMs in modelling such targets.
 
 The diamonds dataset consists of prices of over 50 000 round cut diamonds with a few explaining variables, also called features $X$, such as carat, color, cut quality, clarity and so forth.
-We start with a plot of the cumulative distribution function (CDF) of the target variable $Y=\textrm{price}$ and compare to a fitted [Normal](https://en.wikipedia.org/wiki/Normal_distribution) and [Gamma distribution](https://en.wikipedia.org/wiki/Gamma_distribution) (two parameters each).
+We start with a plot of the cumulative distribution function (CDF) of the target variable $\textrm{price}$ and compare to a fitted [Normal](https://en.wikipedia.org/wiki/Normal_distribution) and [Gamma distribution](https://en.wikipedia.org/wiki/Gamma_distribution) (two parameters each).
 
 TODO: Insert first plot of https://github.com/lorentzenchr/notebooks/blob/master/Blog_GLM_in_sklearn_v0.23.ipynb
 
@@ -66,7 +66,7 @@ The simplest distribution for those is the [Poisson distribution](https://en.wik
 
 ## 2 Introduction to GLMs
 
-GLMs are statistical models for regression tasks that aim to estimate and predict the conditional expectation of $Y$, $E[Y|X]$.
+GLMs are statistical models for regression tasks that aim to estimate and predict the conditional expectation of a target variable $Y$, $E[Y|X]$.
 They unify many different target types under one framework: [Ordinary Least Squares](https://en.wikipedia.org/wiki/Ordinary_least_squares),
 [Logistic](https://en.wikipedia.org/wiki/Logistic_regression), [Probit](https://en.wikipedia.org/wiki/Probit_model) and
 [multinomial model](https://en.wikipedia.org/wiki/Multinomial_logistic_regression), [Poisson regression](https://en.wikipedia.org/wiki/Poisson_regression),
