@@ -70,7 +70,7 @@ GLMs are statistical models for regression tasks that aim to estimate and predic
 They unify many different target types under one framework: [Ordinary Least Squares](https://en.wikipedia.org/wiki/Ordinary_least_squares),
 [Logistic](https://en.wikipedia.org/wiki/Logistic_regression), [Probit](https://en.wikipedia.org/wiki/Probit_model) and
 [multinomial model](https://en.wikipedia.org/wiki/Multinomial_logistic_regression), [Poisson regression](https://en.wikipedia.org/wiki/Poisson_regression),
-Gamma and many more. GLMs were invented by [John Nelder](https://en.wikipedia.org/wiki/John_Nelder) and
+Gamma and many more. GLMs were formalized by [John Nelder](https://en.wikipedia.org/wiki/John_Nelder) and
 [Robert Wedderburn](https://en.wikipedia.org/wiki/Robert_Wedderburn_(statistician)) in 1972 ... long after artificial neural networks!
 
 The basic assumptions for instance or data row $i$ are
