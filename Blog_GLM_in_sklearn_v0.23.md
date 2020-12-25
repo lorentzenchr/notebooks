@@ -43,29 +43,38 @@ As the world is almost (surely) never Normal distributed, regression tasks might
 ## 1 The world is not Normal distributed
 
 Like *real life*, real world data is most often far from *normality*.
+Still, data is often assumed, sometimes implicitly, to follow a [Normal (or Gaussian) distribution](https://en.wikipedia.org/wiki/Normal_distribution).<sup>1</sup>
+Here, we want to point out that&mdash;possibly&mdash;better alternatives are available.
+
+Typical instances of data that is not Normal distributed are counts (discrete) or frequencies (counts per some unit).
+For these, the [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution) is much better suited.
+A few examples that come to mind are:
+- number of clicks per second in a Geiger counter
+- number of patients per day in a hospital
+- number of persons per day using their bike
+- number of goals scored per game and player
+- number of smiles per day and person😃 *cl: Would LOVE to hove those data!!!* *Think about make their distribution more normal*
+
 In what follows, we have chosen the [diamonds dataset](https://ggplot2.tidyverse.org/reference/diamonds.html) to show the non-normality and the convenience of GLMs in modelling such targets.
 
 The diamonds dataset consists of prices of over 50 000 round cut diamonds with a few explaining variables, also called features $X$, such as carat, color, cut quality, clarity and so forth.
-We start with a plot of the cumulative distribution function (CDF) of the target variable $Y=\textrm{price}$ and compare to a fitted [Normal](https://en.wikipedia.org/wiki/Normal_distribution) and [Gamma distribution](https://en.wikipedia.org/wiki/Gamma_distribution) (two parameters each).
+We start with a plot of the cumulative distribution function (CDF) of the target variable $Y=\textrm{price}$ and compare to a fitted Normal and [Gamma distribution](https://en.wikipedia.org/wiki/Gamma_distribution) (two parameters each).
 
 TODO: Insert first plot of https://github.com/lorentzenchr/notebooks/blob/master/Blog_GLM_in_sklearn_v0.23.ipynb
 
 These plots show clearly that the Gamma distribution might be a better fit to the marginal distribution of $Y$ than the Normal distribution.
 
-Other instances of data, that is not Normal distributed, are counts (discrete) or frequencies (counts per some unit). A few examples that come to mind are:
-- number of clicks per second in a Geiger counter
-- number of patients per day in a hospital
-- number of persons per day using their bike
-- number of goals scored per game and player
-- number of smiles per day and person😃 *cl: Would LOVE to hove those data!!!*
-
 The simplest distribution for those is the [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution).
 
 
-## 2 Introduction to GLMs
+## 2 Generalized Linear Models
 
-GLMs are statistical models for regression tasks that aim to estimate and predict the conditional expectation of $Y$, $E[Y|X]$.
-They unify many different target types under one framework: [Ordinary Least Squares](https://en.wikipedia.org/wiki/Ordinary_least_squares), [Logistic](https://en.wikipedia.org/wiki/Logistic_regression), [Probit](https://en.wikipedia.org/wiki/Probit_model) and [multinomial model](https://en.wikipedia.org/wiki/Multinomial_logistic_regression), [Poisson regression](https://en.wikipedia.org/wiki/Poisson_regression), Gamma and many more. GLMs were invented by John Nelder and Robert Wedderburn in 1972, long after artificial neural networks😉
+### 2.1 GLMs in a Nutshell
+
+GLMs are statistical models for regression tasks that aim to estimate and predict the conditional expectation of a target variable $Y$, i.e. $E[Y|X]$.
+They unify many different target types under one framework: [Ordinary Least Squares](https://en.wikipedia.org/wiki/Ordinary_least_squares), [Logistic](https://en.wikipedia.org/wiki/Logistic_regression), [Probit](https://en.wikipedia.org/wiki/Probit_model) and [multinomial model](https://en.wikipedia.org/wiki/Multinomial_logistic_regression), [Poisson regression](https://en.wikipedia.org/wiki/Poisson_regression), Gamma and many more.
+GLMs were formalized by [John Nelder](https://en.wikipedia.org/wiki/John_Nelder) and
+[Robert Wedderburn](https://en.wikipedia.org/wiki/Robert_Wedderburn_(statistician)) in 1972, long after artificial neural networks😉
 
 The basic assumptions for instance or data row $i$ are
 $$
@@ -75,21 +84,27 @@ Var[Y_i|x_i]] \sim \frac{v(\mu_i)}{w_i}\,.
 $$
 *cl: The following is maybe too much*<br>
 Where, one needs to specify:
-- a target $Y_i$,
-- an inverse link function $h$, which maps real numbers to the range of $Y$,
+- the target variable $Y_i$,
+- the inverse link function $h$, which maps real numbers to the range of $Y$,
 - optionally, sample weights $w_i$,
-- and a variance function $v(\mu)$, which is equivalent to specifying a loss function or a specific distribution from the family of the [exponential dispersion model](https://en.wikipedia.org/wiki/Exponential_dispersion_model) (EDM).
-- a feature matrix $X$ with row vectors $x_i$,
+- and the variance function $v(\mu)$, which is equivalent to specifying a loss function or a specific distribution from the family of the [exponential dispersion model](https://en.wikipedia.org/wiki/Exponential_dispersion_model) (EDM).
+- the feature matrix $X$ with row vectors $x_i$,
 
-Note that the choice of the loss or distribution function or, equivalently, a variance function is crucial. It should, at least, reflect the domain of $Y$. Some typical combinations of domain, loss and link function are:
+Note that the choice of the loss or distribution function or, equivalently, a variance function is crucial. It should, at least, reflect the domain of $Y$.
+Some typical combinations of domain, loss and link function are:
+*cm: are those choices related with some specific dataset? Examples?*
 - real numbers, Normal distribution, identity link
 - positive numbers: Gamma distribution, log link
 - non-negative: Poisson distribution (works for integers as well as continuous targets), log link
 - interval $[0, 1]$: Binomial distribution, logit link
 
-Once you have chosen the first four points, what remains is to find a good feature matrix $X$. Similarly to classical linear models, and unlike other machine learning algorithms such as boosted trees, there are very few hyperparemeters to tune. A typical hyperparemeter is regularization strength. Therefore the big leverage to improve your model is manual feature engineering of $X$.
+Once you have chosen the first four points, what remains is to find a good feature matrix $X$.
+Unlike other machine learning algorithms such as boosted trees, there are very few hyperparemeters to tune.
+A typical hyperparemeter is the regularization strength when penalties are applied.
+Therefore, the big leverage to improve your linear model is manual feature engineering of $X$.
+*cm: encoding? selecting features?*
 
-#### Strengths
+### 2.2 Strengths
 - Very well understood and established, proven over and over in practice, e.g. stability, see next point.
 - Very stable: slight changes of training data do not alter the fitted model much (counter example: decision trees).
 - Versatile as to model different targets with different link and loss functions.
@@ -98,12 +113,12 @@ Once you have chosen the first four points, what remains is to find a good featu
 - As flexible as the building of the feature matrix $X$.
 - Some losses, like Poisson loss, can handle a certain amount of excess of zeros.
 
-#### Weaknesses
+### 2.3 Weaknesses
 - Feature matrix $X$ has to be build manually, in particular for interactions and non-linear effects.
 - Unbiasedness depends on (correct) specification of $X$ and of combination of link and loss function.
 - Predictive performance often worse than for boosted tree models or neural networks.
 
-#### Current Minimal Implementation in Scikit-Learn
+### 2.4 Current Minimal Implementation in Scikit-Learn
 The new GLM regressors are available as
 ```python
 from sklearn.linear_model import PoissonRegressor
@@ -118,7 +133,9 @@ Please note that the release 0.23 also introduced the Poisson loss for the histo
 
 ## 3 Gamma GLM for Diamonds
 
-Although, in the first section, we were analysing the marginal distribution of $Y$ and not the conditional (on the features $X$) distribution, we take away the suggestion to fit a Gamma GLM with log-link, i.e. $h(x) = \exp(x)$. Furthermore, we split the data textbook-like into 80% training set and 20% test set and use the ColumnTransformer to handle columns differently. Our feature engineering consists of selecting only the four columns `"carat"`, `"clarity"`, `"color"` and `"cut"`, log-transforming `"carat"` as well as one-hot-encoding the other three.
+After all that theory, we come back to our real world dataset: diamonds.
+Although, in the first section, we were analysing the marginal distribution of $Y$ and not the conditional (on the features $X$) distribution, we take the plot as a hint to fit a Gamma GLM with log-link, i.e. $h(x) = \exp(x)$. Furthermore, we split the data textbook-like into 80% training set and 20% test set and use the ColumnTransformer to handle columns differently.
+Our feature engineering consists of selecting only the four columns `"carat"`, `"clarity"`, `"color"` and `"cut"`, log-transforming `"carat"` as well as one-hot-encoding the other three.
 
 TODO: Show some plots and figures.
 
@@ -138,3 +155,8 @@ There are several open issues and pull request for improving GLMs and fitting of
 
 
 By Christian Lorentzen
+
+
+### Footnotes
+
+<sup>1</sup> Algorithms and estimation methods are often well able to deal with some deviation from the Normal distribution. In addition, the [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem) justifies a Normal distribution when considering averages or means, and the [Gauss–Markov theorem](https://en.wikipedia.org/wiki/Gauss%E2%80%93Markov_theorem) is a cornerstone for the use of ordinary least squares.
