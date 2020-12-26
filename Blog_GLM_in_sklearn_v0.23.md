@@ -47,7 +47,7 @@ Still, data is often assumed, sometimes implicitly, to follow a [Normal (or Gaus
 Here, we want to point out that&mdash;possibly&mdash;better alternatives are available.
 
 Typical instances of data that is not Normal distributed are counts (discrete) or frequencies (counts per some unit).
-For these, the [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution) is much better suited.
+For these, the simple [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution) is much better suited. 
 A few examples that come to mind are:
 - number of clicks per second in a Geiger counter
 - number of patients per day in a hospital
@@ -60,11 +60,9 @@ In what follows, we have chosen the [diamonds dataset](https://ggplot2.tidyverse
 The diamonds dataset consists of prices of over 50 000 round cut diamonds with a few explaining variables, also called features $X$, such as carat, color, cut quality, clarity and so forth.
 We start with a plot of the cumulative distribution function (CDF) of the target variable $Y=\textrm{price}$ and compare to a fitted Normal and [Gamma distribution](https://en.wikipedia.org/wiki/Gamma_distribution) (two parameters each).
 
-TODO: Insert first plot of https://github.com/lorentzenchr/notebooks/blob/master/Blog_GLM_in_sklearn_v0.23.ipynb
+TODO: Insert second plot (empricial CDFs) of https://github.com/lorentzenchr/notebooks/blob/master/Blog_GLM_in_sklearn_v0.23.ipynb
 
 These plots show clearly that the Gamma distribution might be a better fit to the marginal distribution of $Y$ than the Normal distribution.
-
-The simplest distribution for those is the [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution).
 
 
 ## 2 Generalized Linear Models
@@ -98,6 +96,8 @@ Some typical combinations of domain, loss and link function are:
 - non-negative: Poisson distribution (works for integers as well as continuous targets), log link
 - interval $[0, 1]$: Binomial distribution, logit link
 
+TODO: Insert first plot of https://github.com/lorentzenchr/notebooks/blob/master/Blog_GLM_in_sklearn_v0.23.ipynb
+
 Once you have chosen the first four points, what remains is to find a good feature matrix $X$.
 Unlike other machine learning algorithms such as boosted trees, there are very few hyperparemeters to tune.
 A typical hyperparemeter is the regularization strength when penalties are applied.
@@ -114,7 +114,7 @@ Therefore, the big leverage to improve your linear model is manual feature engin
 - Some losses, like Poisson loss, can handle a certain amount of excess of zeros.
 
 ### 2.3 Weaknesses
-- Feature matrix $X$ has to be build manually, in particular for interactions and non-linear effects.
+- Feature matrix $X$ has to be build manually, in particular interaction terms and non-linear effects.
 - Unbiasedness depends on (correct) specification of $X$ and of combination of link and loss function.
 - Predictive performance often worse than for boosted tree models or neural networks.
 
@@ -139,7 +139,7 @@ Our feature engineering consists of selecting only the four columns `"carat"`, `
 
 TODO: Show some plots and figures.
 
-Note: Fitting OLS on log(prices) works also quite well. This is to be expected, as Log-Normal and Gamma are very similar distributions, both with $v(\mu) \sim \mu^2$.
+Note: Fitting OLS on log(prices) works also quite well. This is to be expected, as Log-Normal and Gamma are very similar distributions, both with $Var[Y] \sim E[Y]^2 = \mu^2$.
 
 ## 4 Outlook
 
@@ -159,4 +159,4 @@ By Christian Lorentzen
 
 ### Footnotes
 
-<sup>1</sup> Algorithms and estimation methods are often well able to deal with some deviation from the Normal distribution. In addition, the [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem) justifies a Normal distribution when considering averages or means, and the [Gauss–Markov theorem](https://en.wikipedia.org/wiki/Gauss%E2%80%93Markov_theorem) is a cornerstone for the use of ordinary least squares.
+<sup>1</sup> Algorithms and estimation methods are often well able to deal with some deviation from the Normal distribution. In addition, the [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem) justifies a Normal distribution when considering averages or means, and the [Gauss–Markov theorem](https://en.wikipedia.org/wiki/Gauss%E2%80%93Markov_theorem) is a cornerstone for usage of least squares with linear estimators (linear in the target $Y$).
