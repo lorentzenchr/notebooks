@@ -132,8 +132,8 @@ There are several open issues and pull request for improving GLMs and fitting of
 - L1 penalty and coordinate descent solver [Issue #16637](https://github.com/scikit-learn/scikit-learn/issues/16637)
 - [IRLS](https://en.wikipedia.org/wiki/Iteratively_reweighted_least_squares) solver if bencharking shows improvement over l-bfgs [Issue #16634](https://github.com/scikit-learn/scikit-learn/issues/16634)
 - Better handling of categorical data
-  - Better support for interaction terms [Issue 15263](https://github.com/scikit-learn/scikit-learn/issues/15263)
-  - Native categorical support [Issue 18893](https://github.com/scikit-learn/scikit-learn/issues/18893)
+  - Better support for interaction terms [Issue #15263](https://github.com/scikit-learn/scikit-learn/issues/15263)
+  - Native categorical support [Issue #18893](https://github.com/scikit-learn/scikit-learn/issues/18893)
 - Feature names [SLEP015](https://github.com/scikit-learn/enhancement_proposals/pull/48)🎉
 
 
