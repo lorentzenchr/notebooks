@@ -1,32 +1,3 @@
-**DISCUSSION**
-
-- [ ] Give motivating examples for non Normal real world regression tasks
-  e.g. Poisson for count processes
-  - [ ] **DECISSION: Use diamonds dataset** with target = diamond price
-    This is roughly Gamma distributed. Poisson is more difficult to show empirically, espcecially for large means, because is is discrete and one would need an overdisperson parameter which is not possible with the Poisson distribution alone. Without it, distribution becomes very narrow for large mean.
-    *rth: I was thinking a dataset from everyday life that's easy to understand.*
-    1. *I have started looking into a [bike sharing dataset](https://archive.ics.uci.edu/ml/datasets/bike+sharing+dataset) before realizing that's the dataset also used as illustration for the [interpretabel ML book](https://christophm.github.io/interpretable-ml-book/bike-data.html) and it was also uploaded on Kaggle so there is pleinty of material online on it, which is not so great. Though it's pretty good in terms of [count distribution](https://github.com/pgebert/bike-sharing-dataset#remove-outliers-from-data). Looking for for alternatives.*
-    2. *There is also the dataset of [bike renting in Paris](https://github.com/lovasoa/historique-velib-opendata) it requires a bit more pre-processing and I'm less convinced about applicability of the PoissonRegressor to the target distribution below. I can add weather information there, the dataset would be essentially the number of rented bikes as a function of hour/date and weather. Though this dataset is for 2020 so it would also include the lockdown period wich complicates things.*
-    ![](https://i.imgur.com/rfrRPTu.png) 
-- [ ] Mention scikit-learn roadmap?
-
-Regression models for continuous targets are most often fit with a squared error which can be derived from the likelihood function of a Normal distribution. Squared error makes two important assumptions:
-1. The target is distributed symmetrically around the expectation.
-2. The variance of the target does not depend on the expectation.
-It is known to be sensitive to outliers.
-
-**NOTES:**
-- *cl: So far, too mathematical/statistical, I know. But can help to cut out the right message in the end.*
-- *rth: One thing that bothers me is that although the 'normal distribution' assumption is rarely verified perfectly, in a lot of cases using a model with MSE still works reasonably well as a start. Maybe we could word it as: using GLMs there would lead to more accurate modeling, though since we compare with different metrics, the comparison is not too straightforward either.*
-- *cl:*
-  - *For low frequencies (small lambda parameter) and little data, Poisson is clearly better suited than Normal.*
-  - *How to enforce prediction>=0 with MSE? If you use a log link, you get biased results (same as Gamma with log link and MSE with logit link)*
-  - *Convergence to "true" parameters is faster if you're closer to the "true" distribution, i.e. the more realistic variance assumption (hence the "little data" argument above)*
-
-[comment]: <> (End of discussion)
----
-
-
 # Generalized Linear Models arrived in scikit-learn 0.23
 
 ###### tags: `scikit-learn, GLM`
