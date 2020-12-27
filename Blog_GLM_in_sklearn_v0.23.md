@@ -14,12 +14,20 @@ As the world is almost (surely) never Normal distributed, regression tasks might
 ## 1 The world is not Normal distributed
 
 Like *real life*, real world data is most often far from *normality*.
-Still, data is often assumed, sometimes implicitly, to follow a [Normal (or Gaussian) distribution](https://en.wikipedia.org/wiki/Normal_distribution).<sup>1</sup>
-Here, we want to point out that&mdash;possibly&mdash;better alternatives are available.
+Still, data is often assumed, sometimes implicitly, to follow a [Normal (or Gaussian) distribution](https://en.wikipedia.org/wiki/Normal_distribution).
+Maybe, the two most important assumptions made when choosing a Normal distribution or squared error for regression tasks are<sup>1</sup>:
+
+1. The data is distributed symmetrically around the expectation.
+   Hence, expectation and median are the same.
+2. The variance of the data does not depend on the expectation.
+
+On top, it is well known to be sensitive to outliers.
+Here, we want to point out that&mdash;potentially better&mdash; alternatives are available.
 
 Typical instances of data that is not Normal distributed are counts (discrete) or frequencies (counts per some unit).
-For these, the simple [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution) is much better suited. 
+For these, the simple [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution) might be much better suited. 
 A few examples that come to mind are:
+
 - number of clicks per second in a Geiger counter
 - number of patients per day in a hospital
 - number of persons per day using their bike
@@ -29,11 +37,13 @@ A few examples that come to mind are:
 In what follows, we have chosen the [diamonds dataset](https://ggplot2.tidyverse.org/reference/diamonds.html) to show the non-normality and the convenience of GLMs in modelling such targets.
 
 The diamonds dataset consists of prices of over 50 000 round cut diamonds with a few explaining variables, also called features $X$, such as carat, color, cut quality, clarity and so forth.
-We start with a plot of the cumulative distribution function (CDF) of the target variable $Y=\textrm{price}$ and compare to a fitted Normal and [Gamma distribution](https://en.wikipedia.org/wiki/Gamma_distribution) (two parameters each).
+We start with a plot of the (marginal) cumulative distribution function (CDF) of the target variable $Y=\textrm{price}$ and compare to a fitted Normal and [Gamma distribution](https://en.wikipedia.org/wiki/Gamma_distribution) which have both two parameters each.
 
 TODO: Insert second plot (empricial CDFs) of https://github.com/lorentzenchr/notebooks/blob/master/Blog_GLM_in_sklearn_v0.23.ipynb
 
 These plots show clearly that the Gamma distribution might be a better fit to the marginal distribution of $Y$ than the Normal distribution.
+
+After a more theoretical intermezzo in Chapter 2, we will resume to the diamonds dataset in Chapter 3.
 
 
 ## 2 Generalized Linear Models
@@ -47,33 +57,34 @@ GLMs were formalized by [John Nelder](https://en.wikipedia.org/wiki/John_Nelder)
 
 The basic assumptions for instance or data row $i$ are
 $$
-E[Y_i|x_i] = \mu_i= h(x_i^T\beta)\,,
+E[Y_i|x_i] = \mu_i= h(x_i \cdot \beta)\,,
 \\
 Var[Y_i|x_i]] \sim \frac{v(\mu_i)}{w_i}\,.
 $$
-*cl: The following is maybe too much*<br>
-Where, one needs to specify:
-- the target variable $Y_i$,
-- the inverse link function $h$, which maps real numbers to the range of $Y$,
-- optionally, sample weights $w_i$,
-- and the variance function $v(\mu)$, which is equivalent to specifying a loss function or a specific distribution from the family of the [exponential dispersion model](https://en.wikipedia.org/wiki/Exponential_dispersion_model) (EDM).
-- the feature matrix $X$ with row vectors $x_i$,
+One needs to specify:
+1. the target variable $Y_i$,
+2. the inverse link function $h$, which maps real numbers to the range of $Y$ (or better the range of $E[Y]$),
+3. optionally, sample weights $w_i$,
+4. the variance function $v(\mu)$, which is equivalent to specifying a loss function or a specific distribution from the family of the [exponential dispersion model](https://en.wikipedia.org/wiki/Exponential_dispersion_model) (EDM),
+5. and the feature matrix $X$ with row vectors $x_i$.
 
-Note that the choice of the loss or distribution function or, equivalently, a variance function is crucial. It should, at least, reflect the domain of $Y$.
+Note that the choice of the loss or distribution function or, equivalently, the variance function is crucial. It should, at least, reflect the domain of $Y$.
 Some typical combinations of domain, loss and link function are:
-*cm: are those choices related with some specific dataset? Examples?*
-- real numbers, Normal distribution, identity link
-- positive numbers: Gamma distribution, log link
-- non-negative: Poisson distribution (works for integers as well as continuous targets), log link
-- interval $[0, 1]$: Binomial distribution, logit link
+
+| target domain     | distribution | link     | example
+| ----------------- | ------------ | -------- | ---------------------- |
+| real numbers      | Normal       | identity | measurement error      |
+| positive numbers  | Gamma        | log      | insurance claim size   |
+| non-negative      | Poisson      | log      | see examples above     |
+| interval $[0, 1]$ | Binomial     | logit    | probability of success |
 
 TODO: Insert first plot of https://github.com/lorentzenchr/notebooks/blob/master/Blog_GLM_in_sklearn_v0.23.ipynb
 
 Once you have chosen the first four points, what remains is to find a good feature matrix $X$.
 Unlike other machine learning algorithms such as boosted trees, there are very few hyperparemeters to tune.
 A typical hyperparemeter is the regularization strength when penalties are applied.
-Therefore, the big leverage to improve your linear model is manual feature engineering of $X$.
-*cm: encoding? selecting features?*
+Therefore, the biggest leverage to improve your GLM is manual feature engineering of $X$.
+This includes among ohters feature selection, encoding schemes for categorical features, interaction terms, non-linear terms like $x^2$.
 
 ### 2.2 Strengths
 - Very well understood and established, proven over and over in practice, e.g. stability, see next point.
@@ -105,7 +116,7 @@ Please note that the release 0.23 also introduced the Poisson loss for the histo
 ## 3 Gamma GLM for Diamonds
 
 After all that theory, we come back to our real world dataset: diamonds.
-Although, in the first section, we were analysing the marginal distribution of $Y$ and not the conditional (on the features $X$) distribution, we take the plot as a hint to fit a Gamma GLM with log-link, i.e. $h(x) = \exp(x)$. Furthermore, we split the data textbook-like into 80% training set and 20% test set and use the ColumnTransformer to handle columns differently.
+Although, in the first section, we were analysing the marginal distribution of $Y$ and not the conditional (on the features $X$) distribution, we take the plot as a hint to fit a Gamma GLM with log-link, i.e. $h(x) = \exp(x)$. Furthermore, we split the data textbook-like into 80% training set and 20% test set<sup>2</sup> and use the ColumnTransformer to handle columns differently.
 Our feature engineering consists of selecting only the four columns `"carat"`, `"clarity"`, `"color"` and `"cut"`, log-transforming `"carat"` as well as one-hot-encoding the other three.
 
 TODO: Show some plots and figures.
@@ -122,6 +133,7 @@ There are several open issues and pull request for improving GLMs and fitting of
 - [IRLS](https://en.wikipedia.org/wiki/Iteratively_reweighted_least_squares) solver if bencharking shows improvement over l-bfgs [Issue #16634](https://github.com/scikit-learn/scikit-learn/issues/16634)
 - Better handling of categorical data
   - Better support for interaction terms [Issue 15263](https://github.com/scikit-learn/scikit-learn/issues/15263)
+  - Native categorical support [Issue 18893](https://github.com/scikit-learn/scikit-learn/issues/18893)
 - Feature names [SLEP015](https://github.com/scikit-learn/enhancement_proposals/pull/48)🎉
 
 
@@ -131,3 +143,8 @@ By Christian Lorentzen
 ### Footnotes
 
 <sup>1</sup> Algorithms and estimation methods are often well able to deal with some deviation from the Normal distribution. In addition, the [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem) justifies a Normal distribution when considering averages or means, and the [Gauss–Markov theorem](https://en.wikipedia.org/wiki/Gauss%E2%80%93Markov_theorem) is a cornerstone for usage of least squares with linear estimators (linear in the target $Y$).
+
+<sup>2</sup> Rows in the diamonds dataset seem to be highly correlated as there are many rows with the same values for carat, cut, color and clarity, while the values for x, y and z seem to be permuted.
+Therefore, we define the new group variable that is unique for carat, cut, color and clarity.
+Then, we split stratified by group, i.e. using a `GroupShuffleSplit`.<br>
+Having correlated train and test sets invalidates the i.i.d assumptions and may render test scores too optimistical.
