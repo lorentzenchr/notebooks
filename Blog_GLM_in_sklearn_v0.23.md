@@ -5,13 +5,13 @@
 ### TLDR
 
 While scikit-learn already had some Generalized Linear Models (GLM) implemented, e.g. [LogisticRegression](https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression), other losses than mean squared error and log-loss were missing.
-As the world is almost (surely) never Normal distributed, regression tasks might benefit a lot from the new [PoissonRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.PoissonRegressor.html#sklearn.linear_model.PoissonRegressor), [GammaRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.GammaRegressor.html#sklearn.linear_model.GammaRegressor) and [TweedieRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.TweedieRegressor.html#sklearn.linear_model.TweedieRegressor) estimators, added in scikit-learn 0.23. Read more below and in the [User Guide](https://scikit-learn.org/stable/modules/linear_model.html#generalized-linear-regression).🚀 
+As the world is almost (surely) never normally distributed, regression tasks might benefit a lot from the new [PoissonRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.PoissonRegressor.html#sklearn.linear_model.PoissonRegressor), [GammaRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.GammaRegressor.html#sklearn.linear_model.GammaRegressor) and [TweedieRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.TweedieRegressor.html#sklearn.linear_model.TweedieRegressor) estimators, added in scikit-learn 0.23. Read more below and in the [User Guide](https://scikit-learn.org/stable/modules/linear_model.html#generalized-linear-regression).🚀 
 
 **Table of Content**
 [ToC]
 
 
-## 1 The world is not Normal distributed
+## 1 The world is not normally distributed
 
 Like *real life*, real world data is most often far from *normality*.
 Still, data is often assumed, sometimes implicitly, to follow a [Normal (or Gaussian) distribution](https://en.wikipedia.org/wiki/Normal_distribution).
@@ -24,7 +24,7 @@ Maybe, the two most important assumptions made when choosing a Normal distributi
 On top, it is well known to be sensitive to outliers.
 Here, we want to point out that&mdash;potentially better&mdash; alternatives are available.
 
-Typical instances of data that is not Normal distributed are counts (discrete) or frequencies (counts per some unit).
+Typical instances of data that is not normally distributed are counts (discrete) or frequencies (counts per some unit).
 For these, the simple [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution) might be much better suited. 
 A few examples that come to mind are:
 
@@ -84,12 +84,14 @@ Once you have chosen the first four points, what remains is to find a good featu
 Unlike other machine learning algorithms such as boosted trees, there are very few hyperparemeters to tune.
 A typical hyperparemeter is the regularization strength when penalties are applied.
 Therefore, the biggest leverage to improve your GLM is manual feature engineering of $X$.
-This includes among ohters feature selection, encoding schemes for categorical features, interaction terms, non-linear terms like $x^2$.
+This includes among others feature selection, encoding schemes for categorical features, interaction terms, non-linear terms like $x^2$.
 
 ### 2.2 Strengths
 - Very well understood and established, proven over and over in practice, e.g. stability, see next point.
 - Very stable: slight changes of training data do not alter the fitted model much (counter example: decision trees).
 - Versatile as to model different targets with different link and loss functions.
+  - Example: Log link gives a multiplicative structure: effects are interpreted on a relative scale.
+    Together with a Poisson distribution, this still works even when some target values are exactly zero.
 - Mathematical tractable => good theoretical understanding and fast fitting even for large datasets.
 - Ease of interpretation.
 - As flexible as the building of the feature matrix $X$.
@@ -107,7 +109,7 @@ from sklearn.linear_model import PoissonRegressor
 from sklearn.linear_model import GammaRegressor
 from sklearn.linear_model import TweedieRegressor
 ```
-The `TweedieRegressor` has a parameter `power`, which corresponds to the exponent of the variance function $v(\mu) \sim \mu^p$. For ease of the most common use, `PoissonRegressor` and `GammaRegressor` are the same as `TweedieRegressor(power=1)` and `TweedieRegressor(power=2)`, respectively.
+The `TweedieRegressor` has a parameter `power`, which corresponds to the exponent of the variance function $v(\mu) \sim \mu^p$. For ease of the most common use, `PoissonRegressor` and `GammaRegressor` are the same as `TweedieRegressor(power=1)` and `TweedieRegressor(power=2)`, respectively, with built-in log link.
 All of them also support an L2-penalty on the coefficients by setting the penalization strength `alpha`.
 The underlying optimization problem is solved via the [l-bfgs solver of scipy](https://docs.scipy.org/doc/scipy/reference/optimize.minimize-lbfgsb.html#optimize-minimize-lbfgsb).
 
@@ -144,7 +146,7 @@ By Christian Lorentzen
 
 <sup>1</sup> Algorithms and estimation methods are often well able to deal with some deviation from the Normal distribution. In addition, the [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem) justifies a Normal distribution when considering averages or means, and the [Gauss–Markov theorem](https://en.wikipedia.org/wiki/Gauss%E2%80%93Markov_theorem) is a cornerstone for usage of least squares with linear estimators (linear in the target $Y$).
 
-<sup>2</sup> Rows in the diamonds dataset seem to be highly correlated as there are many rows with the same values for carat, cut, color and clarity, while the values for x, y and z seem to be permuted.
-Therefore, we define the new group variable that is unique for carat, cut, color and clarity.
+<sup>2</sup> Rows in the diamonds dataset seem to be highly correlated as there are many rows with the same values for carat, cut, color, clarity and price, while the values for x, y and z seem to be permuted.
+Therefore, we define the new group variable that is unique for carat, cut, color, clarity and price.
 Then, we split stratified by group, i.e. using a `GroupShuffleSplit`.<br>
-Having correlated train and test sets invalidates the i.i.d assumptions and may render test scores too optimistical.
+Having correlated train and test sets invalidates the i.i.d assumption and may render test scores too optimistical.
