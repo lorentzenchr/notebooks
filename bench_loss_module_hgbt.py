@@ -27,16 +27,18 @@ bench_options = {
     "peak_memory": True,
     "repeat": 20,
 }
-options = {"early_stopping": True}
+early_stopping = [True, False]
+options = {}
 
 
 def benchmark_cases(X, y):
     for N in np.logspace(
             np.log10(n_samples/1e3), np.log10(n_samples), 4
     ).astype('int'):
-        tags = OrderedDict(N=N)
-        clf = HistGradientBoostingClassifier(**options)
-        yield delayed(clf.fit, tags=tags)(X[:N, :], y[:N])
+        for es in early_stopping:
+            tags = OrderedDict(N=N, early_stopping=es)
+            clf = HistGradientBoostingClassifier(**options)
+            yield delayed(clf.fit, tags=tags)(X[:N, :], y[:N])
 
             
 # 1. Binary Histogram Gradient Booster
