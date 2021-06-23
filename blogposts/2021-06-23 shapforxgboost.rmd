@@ -1,0 +1,192 @@
+---
+title: "SHAP analysis in 9 lines"
+author: "Michael Mayer"
+date: "23 6 2021"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    number_sections: yes
+    df_print: paged
+    theme: united
+    highlight: zenburn
+---
+
+# Fetch and prepare data
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, 
+  warning = FALSE,
+  message = FALSE, 
+  fig.height = 5,
+  fig.width = 6
+)
+```
+
+```{r}
+library(farff)
+library(OpenML)
+library(dplyr)
+library(xgboost)
+library(ggplot2)
+library(SHAPforxgboost)
+
+# Load King Country house prices dataset on OpenML
+# ID 42092, https://www.openml.org/d/42092
+df <- getOMLDataSet(data.id = 42092)$data
+head(df)
+
+# Prepare
+df <- df %>%
+  mutate(
+    log_price = log(price),
+    log_sqft_lot = log(sqft_lot),
+    year = as.numeric(substr(date, 1, 4)),
+    building_age = year - yr_built,
+    zipcode = as.integer(as.character(zipcode))
+  )
+
+# Define response and features
+y <- "log_price"
+x <- c("grade", "year", "building_age", "sqft_living",
+       "log_sqft_lot", "bedrooms", "bathrooms", "floors", "zipcode",
+       "lat", "long", "condition", "waterfront")
+
+# random split
+set.seed(83454)
+ix <- sample(nrow(df), 0.8 * nrow(df))
+```
+
+# XGBoost workflow
+
+The workflow for XGBoost is as follows.
+
+```{r xgboost}
+dtrain <- xgb.DMatrix(data.matrix(df[ix, x]),
+                      label = df[ix, y])
+dvalid <- xgb.DMatrix(data.matrix(df[-ix, x]),
+                      label = df[-ix, y])
+
+params <- list(
+  objective = "reg:squarederror",
+  learning_rate = 0.05,
+  subsample = 0.9,
+  colsample_bynode = 1,
+  reg_lambda = 2,
+  max_depth = 5
+)
+
+fit_xgb <- xgb.train(
+  params,
+  data = dtrain,
+  watchlist = list(valid = dvalid),
+  early_stopping_rounds = 20,
+  print_every_n = 100,
+  nrounds = 10000 # early stopping
+)
+
+# Step 1: Select some observations
+X <- data.matrix(df[sample(nrow(df), 1000), x])
+
+# Step 2: Crunch SHAP values
+shap <- shap.prep(fit_xgb, X_train = X)
+
+# Step 3: SHAP importance
+shap.plot.summary(shap)
+
+# Step 4: Loop over dependence plots in decreasing importance
+for (v in shap.importance(shap, names_only = TRUE)) {
+  p <- shap.plot.dependence(shap, v, color_feature = "auto",
+                            alpha = 0.5, jitter_width = 0.1) +
+    ggtitle(v)
+  print(p)
+}
+
+```
+
+# LightGBM workflow
+
+Similar for LightGBM.
+
+```{r lightgbm}
+library(lightgbm)
+
+dtrain <- lgb.Dataset(data.matrix(df[ix, x]),
+                      label = df[ix, y])
+dvalid <- lgb.Dataset(data.matrix(df[-ix, x]),
+                      label = df[-ix, y])
+
+params <- list(
+  objective = "regression",
+  learning_rate = 0.05,
+  subsample = 0.9,
+  reg_lambda = 2,
+  num_leaves = 15
+)
+
+fit_lgb <- lgb.train(
+  params,
+  data = dtrain,
+  valids = list(valid = dvalid),
+  early_stopping_rounds = 20,
+  eval_freq = 100,
+  eval = "rmse",
+  nrounds = 10000
+)
+
+X <- data.matrix(df[sample(nrow(df), 1000), x])
+shap <- shap.prep(fit_lgb, X_train = X)
+shap.plot.summary(shap)
+
+for (v in shap.importance(shap, names_only = TRUE)) {
+  p <- shap.plot.dependence(shap, v, color_feature = "auto",
+                            alpha = 0.5, jitter_width = 0.1) +
+    ggtitle(v)
+  print(p)
+}
+```
+
+# Coloring dependence plots
+
+The last section illustrates the heuristic of the package to select the color variable in dependence plots.
+
+```{r interaction}
+n <- 1000
+
+set.seed(334)
+
+df <- data.frame(
+  x1 = runif(n),
+  x2 = runif(n),
+  x3 = runif(n)
+) %>%
+  mutate(
+    y = x1 * x2 + x3 + runif(n)
+  )
+x <- c("x1", "x2", "x3")
+dtrain <- lgb.Dataset(data.matrix(df[, x]),
+                      label = df[, "y"])
+
+params <- list(
+  objective = "regression",
+  learning_rate = 0.05,
+  subsample = 0.9,
+  reg_lambda = 2,
+  num_leaves = 15
+)
+
+fit_lgb <- lgb.train(
+  params,
+  data = dtrain,
+  eval = "rmse",
+  nrounds = 100
+)
+
+shap <- shap.prep(fit_lgb, X_train = data.matrix(df[, x]))
+shap.plot.summary(shap)
+
+shap.plot.dependence(shap, "x1", color_feature = "auto")
+shap.plot.dependence(shap, "x2", color_feature = "auto")
+shap.plot.dependence(shap, "x3", color_feature = "auto")
+```
