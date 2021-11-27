@@ -53,13 +53,13 @@ params <- list(
   learning_rate = 1,
   num_parallel_tree = 500,
   subsample = 0.63,
-  colsample_bynode = floor(sqrt(m)) / m,
+  colsample_bynode = 1/3,
   reg_lambda = 0,
   max_depth = 20,
   min_child_weight = 2
 )
 
-system.time( # 28 s
+system.time( # 25 s
   unconstrained <- xgb.train(
     params,
     data = dtrain,
@@ -70,7 +70,7 @@ system.time( # 28 s
 
 pred <- predict(unconstrained, data.matrix(df[-ix, x]))
 
-# Test RMSE: 0.177
+# Test RMSE: 0.173
 rmse(y_test, pred)
 
 # ICE curves via our flashlight package
@@ -97,7 +97,7 @@ light_ice(fl, v = "log_sqft_lot", indices = 1:9,
 # Monotonic increasing constraint
 (params$monotone_constraints <- 1 * (x == "log_sqft_lot"))
 
-system.time( #  170s
+system.time( #  179s
   monotonic <- xgb.train(
   params,
   data = dtrain,
@@ -108,7 +108,7 @@ system.time( #  170s
 
 pred <- predict(monotonic, data.matrix(df[-ix, x]))
 
-# Test RMSE: 0.184
+# Test RMSE: 0.176
 rmse(y_test, pred)
 
 fl_m <- flashlight(
