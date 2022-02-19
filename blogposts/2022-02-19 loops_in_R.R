@@ -80,8 +80,3 @@ paste_benchmark <- function(n) {
 }
 
 multiple_benchmarks(paste_benchmark, N = 10^seq(3, 5, 0.25))
-
-
-"Loops in R are very slow."
-# Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
-# Windows 11 Pro
