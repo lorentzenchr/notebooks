@@ -4,6 +4,8 @@
 library(tidyverse)
 library(keras)
 
+set.seed(950)
+
 # Response and covariates
 y <- as.numeric(diamonds$price)
 x <- c("carat", "color", "cut", "clarity")
@@ -70,7 +72,7 @@ dia_small <- X[ind, ]
 # 77 seconds
 system.time(
   ks <- kernelshap(
-    dia_small[1:2,], 
+    dia_small, 
     pred_fun = function(X) as.numeric(predict(nn, X, batch_size = nrow(X))), 
     bg_X = dia_small
   )
