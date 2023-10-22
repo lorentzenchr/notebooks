@@ -111,16 +111,16 @@ microbenchmark(
   iml = FeatureImp$new(mod, n.repetitions = 10, loss = "mse", compare = "difference"),
   dalex = feature_importance(ex, B = 10, type = "difference", n_sample = Inf),
   flashlight = light_importance(fl, v = x, n_max = Inf, m_repetitions = 10),
-  hstats = perm_importance(fit, X = X_valid, y = y_valid, m_rep = 10),
+  hstats = perm_importance(fit, X = X_valid, y = y_valid, perms = 10),
   times = 4
 )
 # 
 # Unit: milliseconds
 # expr             min        lq      mean    median        uq       max neval  cld
-# iml        1508.2445 1509.9666 1527.5894 1524.9326 1545.2121 1552.2477     4 a   
-# dalex       574.0929  575.7350  594.3912  592.3418  613.0474  618.7883     4  b  
-# flashlight 1147.7183 1162.2216 1203.1404 1185.1935 1244.0593 1294.4564     4   c 
-# hstats      337.8444  340.8325  389.5757  350.8449  438.3189  518.7688     4    d
+# iml        1558.3352 1585.3964 1651.9098 1625.5042 1718.4233 1798.2958     4 a   
+# dalex       556.1398  573.8428  594.5660  592.1752  615.2893  637.7739     4  b  
+# flashlight 1207.8085 1238.2424 1347.5105 1340.0633 1456.7787 1502.1071     4   c 
+# hstats      146.0656  146.9564  151.3652  149.4352  155.7741  160.5249     4    d
 
 # Partial dependence (cont)
 v <- "tot_lvg_area"
@@ -160,9 +160,12 @@ X_v500 <- X_valid[1:500, ]
 mod500 <- Predictor$new(fit, data = as.data.frame(X_v500), predict.function = predf)
 fl500 <- flashlight(fl, data = as.data.frame(valid[1:500, ]))
 
-# iml  # 90 s (no pairwise possible)
-system.time(
+# iml  # 225s total, using slow exact calculations
+system.time(  # 90s
   iml_overall <- Interaction$new(mod500, grid.size = 500)
+)
+system.time(  # 135s for all combinations of latitude
+  iml_pairwise <- Interaction$new(mod500, grid.size = 500, feature = "latitude")
 )
 
 # flashlight: 14s total, doing only one pairwise calculation, otherwise would take 63s
@@ -183,11 +186,6 @@ system.time({
 }
 )
 
-# Or using quantile approximation: <1s
-system.time(
-  H_approx <- hstats(fit, v = x, X = X_v500, n_max = Inf, approx = TRUE)
-)
-
 # Overall statistics correspond exactly
 iml_overall$results |> filter(.interaction > 1e-6)
 #     .feature .interaction
@@ -204,6 +202,10 @@ hstats_overall
 # 0.2458269 0.2458269 
 
 # Pairwise results match as well
+iml_pairwise$results |> filter(.interaction > 1e-6)
+#              .feature .interaction
+# 1: longitude:latitude    0.3942526
+
 fl_pairwise$data |> subset(value > 0, select = c(variable, value))
 # latitude:longitude 0.394
 
