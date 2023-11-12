@@ -89,7 +89,7 @@ library(iml)  # Might benefit of multiprocessing, but on Windows with XGB models
 library(DALEX)
 library(ingredients)
 library(flashlight)
-library(microbenchmark)
+library(bench)
 
 set.seed(1)
 
@@ -107,53 +107,52 @@ fl <- flashlight(
 )
   
 # Permutation importance: 10 repeats over full validation data (~2700 rows)
-microbenchmark(
+bench::mark(
   iml = FeatureImp$new(mod, n.repetitions = 10, loss = "mse", compare = "difference"),
   dalex = feature_importance(ex, B = 10, type = "difference", n_sample = Inf),
   flashlight = light_importance(fl, v = x, n_max = Inf, m_repetitions = 10),
   hstats = perm_importance(fit, X = X_valid, y = y_valid, m_rep = 10, verbose = FALSE),
-  times = 4
+  check = FALSE,
+  min_iterations = 3
 )
- 
-# Unit: milliseconds
-# expr             min        lq      mean    median        uq       max neval  cld
-# iml        1532.8545 1535.5962 1578.6838 1538.3425 1621.7713 1705.1956     4 a  
-# dalex       599.6996  623.6306  673.3109  660.4653  722.9913  772.6134     4  b 
-# flashlight  602.7707  619.6451  670.2922  639.5598  720.9393  799.2784     4  b 
-# hstats      379.4195  381.1585  414.5308  410.3719  447.9031  457.9601     4   c
+
+# expression      min   median `itr/sec` mem_alloc `gc/sec` n_itr  n_gc total_time
+# iml           1.58s    1.58s     0.631   209.4MB    2.73      3    13      4.76s
+# dalex      566.21ms 586.91ms     1.72     34.6MB    0.572     3     1      1.75s
+# flashlight 587.03ms 613.15ms     1.63     27.1MB    1.63      3     3      1.84s
+# hstats     353.78ms 360.57ms     2.79     27.2MB    0         3     0      1.08s
 
 # Partial dependence (cont)
 v <- "tot_lvg_area"
-microbenchmark(
+bench::mark(
   iml = FeatureEffect$new(mod, feature = v, grid.size = 50, method = "pdp"),
   dalex = partial_dependence(ex, variables = v, N = Inf, grid_points = 50),
   flashlight = light_profile(fl, v = v, pd_n_max = Inf, n_bins = 50),
   hstats = partial_dep(fit, v = v, X = X_valid, grid_size = 50, n_max = Inf),
-  times = 4
+  check = FALSE,
+  min_iterations = 3
 )
-# Unit: milliseconds
-# expr            min       lq     mean    median        uq       max neval  cld
-# iml        941.7763 968.5576 993.0481 1002.5849 1017.5386 1025.2462     4 a   
-# dalex      694.8007 740.1619 767.1501  788.6172  794.1384  796.5654     4  b  
-# flashlight 327.6056 328.7617 330.4069  330.5388  332.0522  332.9445     4   c 
-# hstats     216.4040 217.0602 217.5606  217.8603  218.0611  218.1179     4    d
-
+# expression      min   median `itr/sec` mem_alloc `gc/sec` n_itr  n_gc total_time
+# iml           1.11s    1.13s     0.887   376.3MB     3.84     3    13      3.38s
+# dalex      782.13ms 783.08ms     1.24    192.8MB     2.90     3     7      2.41s
+# flashlight 367.73ms  372.5ms     2.68     67.9MB     2.68     3     3      1.12s
+# hstats     220.88ms  222.5ms     4.50     14.2MB     0        3     0   666.33ms
+ 
 # Partial dependence (discrete)
 v <- "structure_quality"
-microbenchmark(
+bench::mark(
   iml = FeatureEffect$new(mod, feature = v, method = "pdp", grid.points = 1:5),
   dalex = partial_dependence(ex, variables = v, N = Inf, variable_type = "categorical", grid_points = 5),
   flashlight = light_profile(fl, v = v, pd_n_max = Inf),
   hstats = partial_dep(fit, v = v, X = X_valid, n_max = Inf),
-  times = 4
+  check = FALSE,
+  min_iterations = 3
 )
-
-# Unit: milliseconds
-# expr            min        lq      mean    median        uq      max neval  cld
-# iml         90.3690  91.08965  94.18403  92.57250  97.27840 101.2221     4 a   
-# dalex      174.2517 174.97330 179.43483 175.87115 183.89635 191.7453     4  b  
-# flashlight  43.9318  45.05070  48.09375  46.64275  51.13680  55.1577     4   c 
-# hstats      24.5972  24.64975  25.01325  24.94085  25.37675  25.5741     4    d
+# expression      min   median `itr/sec` mem_alloc `gc/sec` n_itr  n_gc total_time
+# iml            90ms     96ms     10.6    13.29MB     7.06     3     2      283ms
+# dalex       170.6ms  174.4ms      5.73   20.55MB     2.87     2     1      349ms
+# flashlight   40.8ms   43.8ms     23.1     6.36MB     2.10    11     1      476ms
+# hstats       23.5ms   24.4ms     40.6     1.53MB     2.14    19     1      468ms
 
 # H-Stats -> we use a subset of 500 rows
 X_v500 <- X_valid[1:500, ]
@@ -178,12 +177,17 @@ system.time(  # 2s
   )
 )
 
-# hstats: 3s total
+# hstats: 3.4s total
 system.time({
   H <- hstats(fit, v = x, X = X_v500, n_max = Inf)
   hstats_overall <- h2_overall(H, squared = FALSE, zero = FALSE)
   hstats_pairwise <- h2_pairwise(H, squared = FALSE, zero = FALSE)
 }
+)
+
+# Using 50 quantiles to approximate dense numerics: 0.9s
+system.time(
+  H_approx <- hstats(fit, v = x, X = X_v500, n_max = Inf, approx = TRUE)
 )
 
 # Overall statistics correspond exactly
