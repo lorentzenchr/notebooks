@@ -13,7 +13,7 @@ make_data <- function(n = 100) {
     x2 = log(x1),
     x3 = x1 > 0.7
   ) |>
-    transform(y = 1 + 0.2 * x1 + 0.5 * x2 + x3 + 10 * sin(2 * pi * x1))
+    transform(y = 1 + 0.2 * x1 + 0.5 * x2 + x3 + sin(2 * pi * x1))
 }
 df <- make_data()
 head(df)
@@ -72,8 +72,8 @@ all.equal(shap_lgb$lgb_tree$S, shap_lgb$lgb_perm$S)
 all.equal(shap_lgb$lgb_kern$S, shap_lgb$lgb_perm$S)
 
 # Linear coefficient of x3 equals slope of SHAP values
-tail(coef(fit_lm), 1)                  # 0.682815
-diff(range(shap_lm$kern$S[, "x3"]))  # 0.682815
+tail(coef(fit_lm), 1)                # 1.112096
+diff(range(shap_lm$kern$S[, "x3"]))  # 1.112096
 
 sv_dependence(shap_lm$add, xvars, color_var = NULL)
 
