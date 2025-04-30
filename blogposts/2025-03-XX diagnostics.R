@@ -11,9 +11,9 @@ df = getOMLDataSet(data.id = 46772L)$data
 
 # train-test split
 set.seed(112358)
-train_ind <- sample(seq_len(nrow(df)), size = floor(0.8 * nrow(df)))
-df_train <- df[train_ind, ]
-df_test <- df[-train_ind, ]
+train_ind = sample(seq_len(nrow(df)), size = floor(0.8 * nrow(df)))
+df_train = df[train_ind, ]
+df_test = df[-train_ind, ]
 
 # linear model
 model = lm(
@@ -24,8 +24,8 @@ summary(model)
 confint(model)
 
 # residuals vs fitted plot
-# plot(model, which=1)  # this is the standard, but we want a more modern look
-autoplot(model)
+# plot(model, which = c(1, 2))  # this is the standard, but we want a more modern look
+autoplot(model, which = c(1, 2))
 # density plot of residuals
 ggplot(model, aes(x = .fitted, y = .resid)) + geom_point() +
   geom_density_2d() + geom_density_2d_filled(alpha = 0.5)
@@ -47,8 +47,8 @@ bind_rows(
 
 # effect plots
 xvars = c("area", "yearc", "bath", "kitchen", "cheating")
-m_train <- feature_effects(model, v = xvars, data = df_train, y = df_train$rent)
-m_test <- feature_effects(model, v = xvars, data = df_test, y = df_test$rent)
+m_train = feature_effects(model, v = xvars, data = df_train, y = df_train$rent)
+m_test = feature_effects(model, v = xvars, data = df_test, y = df_test$rent)
 
 c(m_train, m_test) |> 
   plot(
